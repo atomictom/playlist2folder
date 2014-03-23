@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# Thomas Manning
+# playlist2folder -- Copy a playlist to a folder!
+
+# Print usage if either argument is missing or "--help" is specified.
+if [ -z "$1" -o -z "$2" ] || expr "$1" == "--help" > /dev/null; then
+	# TODO: Strip the leading directories from $0 in a sh compliant way
+	echo "Usage:"
+	echo "	$0 playlist folder"
+
+	# Exit with an error in the first case and with success in the second.
+	if [ -z "$1" ]; then
+		exit -1
+	else
+		exit 0
+	fi
+fi
+
+# Check if the first argument (the playlist) is a file or not
+if [ ! -f "$1" ]; then
+	echo "The first argument should be a playlist file."
+	echo "The given argument is not a file: " $1
+	exit 1
+fi
+
+# Check if the second argument (the directory) already exists (as a file, directory, link, whatever)
+if [ -e "$2" ]; then
+	echo "The second argument should be a directory that does not already exist."
+	exit 2
+fi
+
+# Better names for our variables
+playlist="$1"
+folder="$2"
+
+# Make the folder and any necessary parents along the way
+mkdir --parents "$folder"
+
+# For every song in the playlist
+while read song; do
+	# If the line is not empty, and does not start with a hash mark
+	# (if so it's probably a comment line or metadata)
+	if [ -n "$song" ] && ! expr match "$song" "\s*#" > /dev/null; then
+		cp "$song" "$folder";
+	fi
+done < "$playlist"
